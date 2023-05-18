@@ -1,0 +1,50 @@
+
+num_val_inputs = 32 | batch_size = 32
+Time = 1.6268031597137451 seconds
+Trace = 6702.8779296875
+num_val_inputs = 64 | batch_size = 64
+Time = 3.8111395835876465 seconds
+Trace = 6340.2890625
+num_val_inputs = 128 | batch_size = 128
+Time = 1.750758409500122 seconds
+Trace = 7118.748046875
+num_val_inputs = 256 | batch_size = 256
+Time = 2.4539220333099365 seconds
+Trace = 7411.8369140625
+num_val_inputs = 512 | batch_size = 512
+Time = 6.178634881973267 seconds
+Trace = 8229.931640625
+num_val_inputs = 1024 | batch_size = 1024
+Time = 16.00067687034607 seconds
+Trace = 8631.0712890625
+
+num_val_inputs = 32 | batch_size = 32
+Time = 1.638075828552246 seconds
+Trace = 6702.8779296875
+num_val_inputs = 64 | batch_size = 32
+Time = 6.4594502449035645 seconds
+Trace = 6340.2880859375
+num_val_inputs = 128 | batch_size = 32
+Time = 4.328968048095703 seconds
+Trace = 7118.74853515625
+num_val_inputs = 256 | batch_size = 32
+Time = 7.651837110519409 seconds
+Trace = 7411.83642578125
+num_val_inputs = 512 | batch_size = 32
+Time = 24.532801389694214 seconds
+Trace = 8229.9306640625
+num_val_inputs = 1024 | batch_size = 32
+Time = 67.77117156982422 seconds
+Trace = 8631.0712890625
+num_val_inputs = 2048 | batch_size = 32
+Time = 19.113532543182373 seconds
+Trace = 9564.8876953125
+num_val_inputs = 4096 | batch_size = 32
+Time = 155.4799530506134 seconds
+Trace = 8535.326171875
+num_val_inputs = 8192 | batch_size = 32
+Time = 789.6272308826447 seconds
+Trace = 9259.50390625
+num_val_inputs = 10000 | batch_size = 32
+Time = 951.3945820331573 seconds
+Trace = 9242.1875

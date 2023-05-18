@@ -1,7 +1,7 @@
 import os
 import time
-# if os.system("nvidia-smi") == 0:
-#     import setGPU
+if os.system("nvidia-smi") == 0:
+    import setGPU
 import tensorflow as tf
 import glob
 import sys
@@ -93,13 +93,14 @@ def main(args):
     l2p = float(config["model"]["l2"])
     skip = bool(config["model"]["skip"])
     avg_pooling = bool(config["model"]["avg_pooling"])
-    batch_size = config["fit"]["batch_size"]
+    # batch_size = config["fit"]["batch_size"]
     num_epochs = config["fit"]["epochs"]
     verbose = config["fit"]["verbose"]
     patience = config["fit"]["patience"]
     save_dir = config["save_dir"]
     model_name = config["model"]["name"]
     loss = config["fit"]["compile"]["loss"]
+    batch_size = args.batch_size
     model_file_path = args.pretrained_model
 
     if not os.path.exists(save_dir):
@@ -222,7 +223,7 @@ def main(args):
         raise RuntimeError("Improper configuration for 'num_val_inputs'")
 
     #S: Configure which bits will be flipped
-    # bit_flip_range_step = (0,2, 1)
+    bit_flip_range_step = (0,2, 1)
     bit_flip_range_step = (0,fmodel.num_model_param_bits, 1)
     if (args.use_custom_bfr == 1): 
         bfr_start_ok = (0 <= args.bfr_start) and (args.bfr_start<= fmodel.num_model_param_bits)
@@ -245,18 +246,27 @@ def main(args):
 
         print("cross entropy loss = %.3f" % loss_val)
 
-        # hess_start = time.time()
-        # hess = HessianMetrics(
-        #     fmodel.model, 
-        #     CategoricalCrossentropy(), 
-        #     curr_val_input, 
-        #     curr_val_output, 
-        #     batch_size=batch_size,
-        # )
-        # hess_trace = hess.trace(max_iter=500)
+        hess_start = time.time()
+        hess = HessianMetrics(
+            fmodel.model, 
+            CategoricalCrossentropy(), 
+            curr_val_input, 
+            curr_val_output, 
+            batch_size=batch_size,
+        )
+        hess_trace = hess.trace(max_iter=500)
+        trace_time = time.time() - hess_start
+        print(f"Hessian trace compute time: {trace_time} seconds")
+        print(f"hess_trace = {hess_trace}")
+        exp_file_write(
+            os.path.join(save_dir, "hess_trace_debug.log"), 
+            f"num_val_inputs = {args.num_val_inputs} | batch_size = {batch_size}\n"
+        )
+        exp_file_write(os.path.join(save_dir, "hess_trace_debug.log"), f"Time = {trace_time} seconds\n")
+        exp_file_write(os.path.join(save_dir, "hess_trace_debug.log"), f"Trace = {hess_trace}\n")
         # exp_file_write(efd_fp, f'Hessian trace compute time: {time.time() - hess_start} seconds\n')
         # exp_file_write(efd_fp,  f"hess_trace = {hess_trace}\n")
-        break
+        # break
 
 
 if __name__ == "__main__":
@@ -269,6 +279,9 @@ if __name__ == "__main__":
         type=str,
         default=None,
         help="specify pretrained model file path",
+    )
+    parser.add_argument(
+        "--batch_size", type=int, default=32, help="specify batch size"
     )
     # I: Arguments for bit flipping experiment   
     parser.add_argument(

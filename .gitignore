@@ -1,8 +1,6 @@
 */__pycache__/*
-*.h5
 *.npy
 *.jou
-*.log
 *.str
 .Xil
 *.dat

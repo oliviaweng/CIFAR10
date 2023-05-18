@@ -1,5 +1,5 @@
 #!/bin/bash
-PRETRAINED_MODEL=./resnet_v1_eembc_quantized_tiny2_fkeras/model_best_untrained.h5
+PRETRAINED_MODEL=./resnet_v1_eembc_quantized_tiny2_fkeras/model_best.h5
 
 # Sanity check
 #bits=10600
