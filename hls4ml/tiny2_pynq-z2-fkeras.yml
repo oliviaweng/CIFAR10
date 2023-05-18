@@ -1,4 +1,4 @@
-save_dir: resnet_v1_eembc_quantized_tiny2
+save_dir: resnet_v1_eembc_quantized_tiny2_fkeras
 
 data:
   name: cifar10
@@ -9,7 +9,7 @@ data:
   - 3
 
 model:
-  name: resnet_v1_eembc_quantized
+  name: resnet_v1_eembc_quantized_fkeras
   filters:
   - 32
   - 4

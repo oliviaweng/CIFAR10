@@ -11,7 +11,7 @@ import resnet_v1_eembc
 import yaml
 import csv
 # from keras_flops import get_flops # (different flop calculation)
-import kerop
+# import kerop
 from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.layers.experimental.preprocessing import RandomCrop
 random_crop_model = tf.keras.models.Sequential()
@@ -152,22 +152,22 @@ def main(args):
     print('#################')
 
     # analyze FLOPs (see https://github.com/kentaroy47/keras-Opcounter)
-    layer_name, layer_flops, inshape, weights = kerop.profile(model)
+    # layer_name, layer_flops, inshape, weights = kerop.profile(model)
 
-    # visualize FLOPs results
-    total_flop = 0
-    for name, flop, shape in zip(layer_name, layer_flops, inshape):
-        print("layer:", name, shape, " MFLOPs:", flop/1e6)
-        total_flop += flop
-    print("Total FLOPs: {} MFLOPs".format(total_flop/1e6))
+    # # visualize FLOPs results
+    # total_flop = 0
+    # for name, flop, shape in zip(layer_name, layer_flops, inshape):
+    #     print("layer:", name, shape, " MFLOPs:", flop/1e6)
+    #     total_flop += flop
+    # print("Total FLOPs: {} MFLOPs".format(total_flop/1e6))
 
-    tf.keras.utils.plot_model(model,
-                              to_file="model.png",
-                              show_shapes=True,
-                              show_dtype=False,
-                              show_layer_names=False,
-                              rankdir="TB",
-                              expand_nested=False)
+    # tf.keras.utils.plot_model(model,
+    #                           to_file="model.png",
+    #                           show_shapes=True,
+    #                           show_dtype=False,
+    #                           show_layer_names=False,
+    #                           rankdir="TB",
+    #                           expand_nested=False)
 
     # Alternative FLOPs calculation (see https://github.com/tokusumi/keras-flops), ~same answer
     # total_flop = get_flops(model, batch_size=1)
