@@ -3,7 +3,7 @@ PRETRAINED_MODEL=./resnet_v1_eembc_quantized_tiny2_fkeras/model_best_untrained.h
 
 # Sanity check
 #bits=10600
-bits=460656
+bits=459520
 VMs=8
 system=0
 lbi=$((bits/VMs * system))
