@@ -48,3 +48,65 @@ Trace = 9259.50390625
 num_val_inputs = 10000 | batch_size = 32
 Time = 951.3945820331573 seconds
 Trace = 9242.1875
+
+num_val_inputs = 32 | batch_size = 32
+Time = 1.7805538177490234 seconds
+Trace = 3441.5703125
+num_val_inputs = 64 | batch_size = 32
+Time = 6.0423743724823 seconds
+Trace = 1969.9791259765625
+num_val_inputs = 128 | batch_size = 32
+Time = 3.5988729000091553 seconds
+Trace = 3136.436767578125
+num_val_inputs = 256 | batch_size = 32
+Time = 14.288498401641846 seconds
+Trace = 2860.260009765625
+num_val_inputs = 512 | batch_size = 32
+Time = 5.366095781326294 seconds
+Trace = 2543.966064453125
+num_val_inputs = 1024 | batch_size = 32
+Time = 76.05528783798218 seconds
+Trace = 2714.05322265625
+num_val_inputs = 2048 | batch_size = 32
+Time = 59.814573764801025 seconds
+Trace = 2841.4501953125
+num_val_inputs = 4096 | batch_size = 32
+Time = 106.50191378593445 seconds
+Trace = 2888.32666015625
+num_val_inputs = 8192 | batch_size = 32
+Time = 280.4994671344757 seconds
+Trace = 2869.833251953125
+num_val_inputs = 10000 | batch_size = 32
+Time = 331.7414331436157 seconds
+Trace = 2890.110595703125
+
+num_val_inputs = 32 | batch_size = 32
+Time = 1.7812538146972656 seconds
+Trace = 213.5221405029297
+num_val_inputs = 64 | batch_size = 32
+Time = 6.164252042770386 seconds
+Trace = 122.2215805053711
+num_val_inputs = 128 | batch_size = 32
+Time = 3.715583086013794 seconds
+Trace = 194.59091186523438
+num_val_inputs = 256 | batch_size = 32
+Time = 14.521445989608765 seconds
+Trace = 177.4563751220703
+num_val_inputs = 512 | batch_size = 32
+Time = 5.459187984466553 seconds
+Trace = 157.8333282470703
+num_val_inputs = 1024 | batch_size = 32
+Time = 79.05943703651428 seconds
+Trace = 168.3854217529297
+num_val_inputs = 2048 | batch_size = 32
+Time = 60.30057907104492 seconds
+Trace = 176.2894744873047
+num_val_inputs = 4096 | batch_size = 32
+Time = 109.6553373336792 seconds
+Trace = 179.19775390625
+num_val_inputs = 8192 | batch_size = 32
+Time = 286.11601972579956 seconds
+Trace = 178.0503692626953
+num_val_inputs = 10000 | batch_size = 32
+Time = 344.23265767097473 seconds
+Trace = 179.3079833984375

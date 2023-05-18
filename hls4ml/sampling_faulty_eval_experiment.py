@@ -1,5 +1,6 @@
 import os
 import time
+
 if os.system("nvidia-smi") == 0:
     import setGPU
 import tensorflow as tf
@@ -19,7 +20,6 @@ from fkeras.metrics.hessian import HessianMetrics
 from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.layers.experimental.preprocessing import RandomCrop
 from tensorflow.keras.losses import CategoricalCrossentropy
-from tensorflow.keras.metrics import categorical_crossentropy
 
 random_crop_model = tf.keras.models.Sequential()
 random_crop_model.add(
@@ -66,19 +66,19 @@ def exp_file_write(file_path, input_str, open_mode="a"):
 
 
 def main(args):
-    #S: Running eagerly is essential. Without eager execution mode,
+    # S: Running eagerly is essential. Without eager execution mode,
     ### the fkeras.utils functions (e.g., gen_mask_tensor) only get
-    ### get evaluated once and then subsequent "calls" reuse the 
+    ### get evaluated once and then subsequent "calls" reuse the
     ### same value from the initial call (which manifest as the
     ### same fault(s) being injected over and over again)
     tf.config.run_functions_eagerly(True)
     # tf.data.experimental.enable_debug_mode()
 
-    efd_fp = args.efd_fp #"./efd_val_inputs_0-31_with_eager_exec_cleaning.log"
-    efr_fp = args.efr_fp #"./efr_val_inputs_0-31_with_eager_exec_cleaning.log"
+    efd_fp = args.efd_fp  # "./efd_val_inputs_0-31_with_eager_exec_cleaning.log"
+    efr_fp = args.efr_fp  # "./efr_val_inputs_0-31_with_eager_exec_cleaning.log"
     if args.efx_overwrite:
         exp_file_write(efd_fp, "", "w")
-        exp_file_write(efr_fp, "", "w")   
+        exp_file_write(efr_fp, "", "w")
     print(args)
 
     # parameters
@@ -203,41 +203,47 @@ def main(args):
 
     # compile model with optimizer
     model.compile(
-        optimizer=optimizer(learning_rate=initial_lr), loss=CategoricalCrossentropy(), metrics=["accuracy"]
+        optimizer=optimizer(learning_rate=initial_lr),
+        loss=CategoricalCrossentropy(),
+        metrics=["accuracy"],
     )
 
     # restore "best" model
     model.load_weights(model_file_path)
 
-    #S: Instantiate the FKeras model to be used
+    # S: Instantiate the FKeras model to be used
     fmodel = FModel(model, 0.0)
     print(fmodel.layer_bit_ranges)
 
-    #S: Configure how many validation inputs will be used
+    # S: Configure how many validation inputs will be used
     curr_val_input = X_test
     curr_val_output = y_test
     if 0 < args.num_val_inputs <= X_test.shape[0]:
-        curr_val_input = X_test[:args.num_val_inputs]
-        curr_val_output = y_test[:args.num_val_inputs]
+        curr_val_input = X_test[: args.num_val_inputs]
+        curr_val_output = y_test[: args.num_val_inputs]
     else:
         raise RuntimeError("Improper configuration for 'num_val_inputs'")
 
-    #S: Configure which bits will be flipped
-    bit_flip_range_step = (0,2, 1)
-    bit_flip_range_step = (0,fmodel.num_model_param_bits, 1)
-    if (args.use_custom_bfr == 1): 
-        bfr_start_ok = (0 <= args.bfr_start) and (args.bfr_start<= fmodel.num_model_param_bits)
-        bfr_end_ok   = (0 <= args.bfr_end  ) and (args.bfr_end  <= fmodel.num_model_param_bits)
+    # S: Configure which bits will be flipped
+    bit_flip_range_step = (0, 2, 1)
+    bit_flip_range_step = (0, fmodel.num_model_param_bits, 1)
+    if args.use_custom_bfr == 1:
+        bfr_start_ok = (0 <= args.bfr_start) and (
+            args.bfr_start <= fmodel.num_model_param_bits
+        )
+        bfr_end_ok = (0 <= args.bfr_end) and (
+            args.bfr_end <= fmodel.num_model_param_bits
+        )
         bfr_ok = bfr_start_ok and bfr_end_ok
         if bfr_ok:
             bit_flip_range_step = (args.bfr_start, args.bfr_end, args.bfr_step)
         else:
             raise RuntimeError("Improper configuration for bit flipping range")
 
-    #S: Begin the single fault injection (bit flipping) campaign
+    # S: Begin the single fault injection (bit flipping) campaign
     for bit_i in range(*bit_flip_range_step):
 
-        #S: Flip the desired bit in the model 
+        # S: Flip the desired bit in the model
         fmodel.explicit_select_model_param_bitflip([bit_i])
 
         # get predictions
@@ -248,10 +254,10 @@ def main(args):
 
         hess_start = time.time()
         hess = HessianMetrics(
-            fmodel.model, 
-            CategoricalCrossentropy(), 
-            curr_val_input, 
-            curr_val_output, 
+            fmodel.model,
+            CategoricalCrossentropy(),
+            curr_val_input,
+            curr_val_output,
             batch_size=batch_size,
         )
         hess_trace = hess.trace(max_iter=500)
@@ -259,11 +265,16 @@ def main(args):
         print(f"Hessian trace compute time: {trace_time} seconds")
         print(f"hess_trace = {hess_trace}")
         exp_file_write(
-            os.path.join(save_dir, "hess_trace_debug.log"), 
-            f"num_val_inputs = {args.num_val_inputs} | batch_size = {batch_size}\n"
+            os.path.join(save_dir, "hess_trace_debug.log"),
+            f"num_val_inputs = {args.num_val_inputs} | batch_size = {batch_size}\n",
         )
-        exp_file_write(os.path.join(save_dir, "hess_trace_debug.log"), f"Time = {trace_time} seconds\n")
-        exp_file_write(os.path.join(save_dir, "hess_trace_debug.log"), f"Trace = {hess_trace}\n")
+        exp_file_write(
+            os.path.join(save_dir, "hess_trace_debug.log"),
+            f"Time = {trace_time} seconds\n",
+        )
+        exp_file_write(
+            os.path.join(save_dir, "hess_trace_debug.log"), f"Trace = {hess_trace}\n"
+        )
         # exp_file_write(efd_fp, f'Hessian trace compute time: {time.time() - hess_start} seconds\n')
         # exp_file_write(efd_fp,  f"hess_trace = {hess_trace}\n")
         # break
@@ -280,10 +291,8 @@ if __name__ == "__main__":
         default=None,
         help="specify pretrained model file path",
     )
-    parser.add_argument(
-        "--batch_size", type=int, default=32, help="specify batch size"
-    )
-    # I: Arguments for bit flipping experiment   
+    parser.add_argument("--batch_size", type=int, default=32, help="specify batch size")
+    # I: Arguments for bit flipping experiment
     parser.add_argument(
         "--efd_fp",
         type=str,
