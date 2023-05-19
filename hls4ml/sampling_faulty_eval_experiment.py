@@ -243,47 +243,51 @@ def main(args):
         
     if args.correct_idx_file is None:
         # Get non-faulty model predictions
-        non_faulty_preds = model.predict(curr_val_input, batch_size=batch_size)
+        non_faulty_preds = model.predict(X_test, batch_size=batch_size)
         non_faulty_preds = tf.one_hot(tf.argmax(non_faulty_preds, axis=1), depth=10)
-        non_faulty_preds = tf.reshape(non_faulty_preds, curr_val_output.shape)
+        non_faulty_preds = tf.reshape(non_faulty_preds, y_test.shape)
 
         # one-hot accuracy
-        acc = compute_accuracy(curr_val_output, non_faulty_preds)
+        acc = compute_accuracy(y_test, non_faulty_preds)
         print("non faulty accuracy = ", acc.numpy())
 
         # Pull out the correct predictions
         non_faulty_correct_indices = tf.where(
-            tf.reduce_all(tf.equal(non_faulty_preds, curr_val_output), axis=1)
+            tf.reduce_all(tf.equal(non_faulty_preds, y_test), axis=1)
         )
+        print("Saving correct indices to file")
         np.save(os.path.join(save_dir, "non_faulty_correct_indices.npy"), non_faulty_correct_indices.numpy())
     else:
         print("Loading correct indices from file")
         non_faulty_correct_indices = np.load(args.correct_idx_file)
-    curr_val_input = curr_val_input[non_faulty_correct_indices]
-    curr_val_input = tf.reshape(curr_val_input, (curr_val_input.shape[0], 32, 32, 3))
-    curr_val_output = curr_val_output[non_faulty_correct_indices]
-    curr_val_output = tf.reshape(curr_val_output, (curr_val_output.shape[0], 10))
+    X_test = X_test[non_faulty_correct_indices]
+    X_test = tf.reshape(X_test, (X_test.shape[0], 32, 32, 3))
+    y_test = y_test[non_faulty_correct_indices]
+    y_test = tf.reshape(y_test, (y_test.shape[0], 10))
 
     # S: Begin the single fault injection (bit flipping) campaign
     for bit_i in range(*bit_flip_range_step):
 
         # S: Flip the desired bit in the model
-        fmodel.explicit_select_model_param_bitflip([bit_i])
+        # fmodel.explicit_select_model_param_bitflip([bit_i])
 
         # get predictions
-        y_pred = model.predict(curr_val_input, batch_size=batch_size)
-        loss_val = CategoricalCrossentropy()(curr_val_output, y_pred)
+        time_start = time.time()
+        y_pred = model.predict(X_test, batch_size=batch_size)
+        loss_val = CategoricalCrossentropy()(y_test, y_pred)
+        time_end = time.time()
+        print(f"Time to predict = {time_end - time_start}")
 
         # one-hot encode
         y_pred = tf.one_hot(tf.argmax(y_pred, axis=1), depth=10)
-        y_pred = tf.reshape(y_pred, curr_val_output.shape)
+        y_pred = tf.reshape(y_pred, y_test.shape)
 
         y_pred_correct_indices = tf.where(
-            tf.reduce_all(tf.equal(y_pred, curr_val_output), axis=1)
+            tf.reduce_all(tf.equal(y_pred, y_test), axis=1)
         )
         # Number of times bit flip caused a misprediction
         # @Andy: Log this number for each bit flip
-        print(f"num mispredictions = {curr_val_output.shape[0] - len(y_pred_correct_indices)}")
+        print(f"num mispredictions = {y_test.shape[0] - len(y_pred_correct_indices)}")
 
         print("cross entropy loss = %.3f" % loss_val)
 
@@ -310,7 +314,7 @@ def main(args):
         # exp_file_write(
         #     os.path.join(save_dir, "hess_trace_debug.log"), f"Trace = {hess_trace}\n"
         # )
-        # break
+        break
 
 def compute_accuracy(one_hot_true, one_hot_pred):
     # Convert one-hot encoding to indices
