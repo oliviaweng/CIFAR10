@@ -110,3 +110,27 @@ Trace = 178.0503692626953
 num_val_inputs = 10000 | batch_size = 32
 Time = 344.23265767097473 seconds
 Trace = 179.3079833984375
+num_val_inputs = 32 | batch_size = 32
+Time = 4.515871286392212 seconds
+Trace = 11724.173828125
+num_val_inputs = 2048 | batch_size = 32
+Time = 66.75607466697693 seconds
+Trace = 2821.753662109375
+num_val_inputs = 2048 | batch_size = 32
+Time = 236.18076086044312 seconds
+Trace = 9903.619140625
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32
+num_val_inputs = 2048 | batch_size = 32

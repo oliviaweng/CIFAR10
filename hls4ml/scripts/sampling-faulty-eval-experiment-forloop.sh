@@ -1,5 +1,6 @@
 #!/bin/bash
 PRETRAINED_MODEL=./resnet_v1_eembc_quantized_tiny2_fkeras/model_best.h5
+CORRECT_IDX_FILE=./resnet_v1_eembc_quantized_tiny2_fkeras/non_faulty_correct_indices.npy
 
 # Sanity check
 #bits=10600
@@ -20,6 +21,7 @@ CUDA_VISIBLE_DEVICES="" python3 sampling_faulty_eval_experiment.py \
         --bfr_start $i \
         --bfr_end   $((i+1)) \
         --bfr_step  1 \
-        --num_val_inputs 32
+        --num_val_inputs 2048 \
+        --correct_idx_file $CORRECT_IDX_FILE
 exit
 done

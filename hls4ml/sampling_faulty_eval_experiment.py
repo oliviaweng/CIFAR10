@@ -7,6 +7,7 @@ import tensorflow as tf
 import glob
 import sys
 import argparse
+import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import roc_auc_score
 import resnet_v1_eembc
@@ -239,6 +240,29 @@ def main(args):
             bit_flip_range_step = (args.bfr_start, args.bfr_end, args.bfr_step)
         else:
             raise RuntimeError("Improper configuration for bit flipping range")
+        
+    if args.correct_idx_file is None:
+        # Get non-faulty model predictions
+        non_faulty_preds = model.predict(curr_val_input, batch_size=batch_size)
+        non_faulty_preds = tf.one_hot(tf.argmax(non_faulty_preds, axis=1), depth=10)
+        non_faulty_preds = tf.reshape(non_faulty_preds, curr_val_output.shape)
+
+        # one-hot accuracy
+        acc = compute_accuracy(curr_val_output, non_faulty_preds)
+        print("non faulty accuracy = ", acc.numpy())
+
+        # Pull out the correct predictions
+        non_faulty_correct_indices = tf.where(
+            tf.reduce_all(tf.equal(non_faulty_preds, curr_val_output), axis=1)
+        )
+        np.save(os.path.join(save_dir, "non_faulty_correct_indices.npy"), non_faulty_correct_indices.numpy())
+    else:
+        print("Loading correct indices from file")
+        non_faulty_correct_indices = np.load(args.correct_idx_file)
+    curr_val_input = curr_val_input[non_faulty_correct_indices]
+    curr_val_input = tf.reshape(curr_val_input, (curr_val_input.shape[0], 32, 32, 3))
+    curr_val_output = curr_val_output[non_faulty_correct_indices]
+    curr_val_output = tf.reshape(curr_val_output, (curr_val_output.shape[0], 10))
 
     # S: Begin the single fault injection (bit flipping) campaign
     for bit_i in range(*bit_flip_range_step):
@@ -250,35 +274,56 @@ def main(args):
         y_pred = model.predict(curr_val_input, batch_size=batch_size)
         loss_val = CategoricalCrossentropy()(curr_val_output, y_pred)
 
+        # one-hot encode
+        y_pred = tf.one_hot(tf.argmax(y_pred, axis=1), depth=10)
+        y_pred = tf.reshape(y_pred, curr_val_output.shape)
+
+        y_pred_correct_indices = tf.where(
+            tf.reduce_all(tf.equal(y_pred, curr_val_output), axis=1)
+        )
+        # Number of times bit flip caused a misprediction
+        # @Andy: Log this number for each bit flip
+        print(f"num mispredictions = {curr_val_output.shape[0] - len(y_pred_correct_indices)}")
+
         print("cross entropy loss = %.3f" % loss_val)
 
-        hess_start = time.time()
-        hess = HessianMetrics(
-            fmodel.model,
-            CategoricalCrossentropy(),
-            curr_val_input,
-            curr_val_output,
-            batch_size=batch_size,
-        )
-        hess_trace = hess.trace(max_iter=500)
-        trace_time = time.time() - hess_start
-        print(f"Hessian trace compute time: {trace_time} seconds")
-        print(f"hess_trace = {hess_trace}")
-        exp_file_write(
-            os.path.join(save_dir, "hess_trace_debug.log"),
-            f"num_val_inputs = {args.num_val_inputs} | batch_size = {batch_size}\n",
-        )
-        exp_file_write(
-            os.path.join(save_dir, "hess_trace_debug.log"),
-            f"Time = {trace_time} seconds\n",
-        )
-        exp_file_write(
-            os.path.join(save_dir, "hess_trace_debug.log"), f"Trace = {hess_trace}\n"
-        )
-        # exp_file_write(efd_fp, f'Hessian trace compute time: {time.time() - hess_start} seconds\n')
-        # exp_file_write(efd_fp,  f"hess_trace = {hess_trace}\n")
+        # hess_start = time.time()
+        # hess = HessianMetrics(
+        #     fmodel.model,
+        #     CategoricalCrossentropy(),
+        #     curr_val_input,
+        #     curr_val_output,
+        #     batch_size=batch_size,
+        # )
+        # hess_trace = hess.trace(max_iter=500)
+        # trace_time = time.time() - hess_start
+        # print(f"Hessian trace compute time: {trace_time} seconds")
+        # print(f"hess_trace = {hess_trace}")
+        # exp_file_write(
+        #     os.path.join(save_dir, "hess_trace_debug.log"),
+        #     f"num_val_inputs = {args.num_val_inputs} | batch_size = {batch_size}\n",
+        # )
+        # exp_file_write(
+        #     os.path.join(save_dir, "hess_trace_debug.log"),
+        #     f"Time = {trace_time} seconds\n",
+        # )
+        # exp_file_write(
+        #     os.path.join(save_dir, "hess_trace_debug.log"), f"Trace = {hess_trace}\n"
+        # )
         # break
 
+def compute_accuracy(one_hot_true, one_hot_pred):
+    # Convert one-hot encoding to indices
+    true_indices = tf.argmax(one_hot_true, axis=1)
+    pred_indices = tf.argmax(one_hot_pred, axis=1)
+
+    # Compare predicted indices with true indices
+    correct_predictions = tf.equal(true_indices, pred_indices)
+
+    # Compute accuracy
+    accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
+
+    return accuracy
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -340,6 +385,12 @@ if __name__ == "__main__":
         type=int,
         default=2,
         help="Number of validation inputs to use for evaluating the faulty models",
+    )
+    parser.add_argument(
+        "--correct_idx_file",
+        type=str,
+        default=None,
+        help="File path to numpy array containing indices of correct predictions",
     )
 
     args = parser.parse_args()
