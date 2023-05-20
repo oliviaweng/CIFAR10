@@ -291,29 +291,29 @@ def main(args):
 
         print("cross entropy loss = %.3f" % loss_val)
 
-        # hess_start = time.time()
-        # hess = HessianMetrics(
-        #     fmodel.model,
-        #     CategoricalCrossentropy(),
-        #     curr_val_input,
-        #     curr_val_output,
-        #     batch_size=batch_size,
-        # )
-        # hess_trace = hess.trace(max_iter=500)
-        # trace_time = time.time() - hess_start
-        # print(f"Hessian trace compute time: {trace_time} seconds")
-        # print(f"hess_trace = {hess_trace}")
-        # exp_file_write(
-        #     os.path.join(save_dir, "hess_trace_debug.log"),
-        #     f"num_val_inputs = {args.num_val_inputs} | batch_size = {batch_size}\n",
-        # )
-        # exp_file_write(
-        #     os.path.join(save_dir, "hess_trace_debug.log"),
-        #     f"Time = {trace_time} seconds\n",
-        # )
-        # exp_file_write(
-        #     os.path.join(save_dir, "hess_trace_debug.log"), f"Trace = {hess_trace}\n"
-        # )
+        hess_start = time.time()
+        hess = HessianMetrics(
+            fmodel.model,
+            CategoricalCrossentropy(),
+            curr_val_input,
+            curr_val_output,
+            batch_size=batch_size,
+        )
+        hess_trace = hess.trace(max_iter=500)
+        trace_time = time.time() - hess_start
+        print(f"Hessian trace compute time: {trace_time} seconds")
+        print(f"hess_trace = {hess_trace}")
+        exp_file_write(
+            os.path.join(save_dir, "hess_trace_debug.log"),
+            f"num_val_inputs = {args.num_val_inputs} | batch_size = {batch_size}\n",
+        )
+        exp_file_write(
+            os.path.join(save_dir, "hess_trace_debug.log"),
+            f"Time = {trace_time} seconds\n",
+        )
+        exp_file_write(
+            os.path.join(save_dir, "hess_trace_debug.log"), f"Trace = {hess_trace}\n"
+        )
         break
 
 def compute_accuracy(one_hot_true, one_hot_pred):
