@@ -22,6 +22,7 @@ CUDA_VISIBLE_DEVICES="" python3 sampling_faulty_eval_experiment.py \
         --bfr_end   $((i+1)) \
         --bfr_step  1 \
         --num_val_inputs 2048 \
-        --correct_idx_file $CORRECT_IDX_FILE
+        --correct_idx_file $CORRECT_IDX_FILE \
+        --thread_id "$1"
 exit
 done
