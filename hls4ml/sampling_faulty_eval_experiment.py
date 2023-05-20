@@ -269,7 +269,7 @@ def main(args):
     for bit_i in range(*bit_flip_range_step):
 
         # S: Flip the desired bit in the model
-        # fmodel.explicit_select_model_param_bitflip([bit_i])
+        fmodel.explicit_select_model_param_bitflip([bit_i])
 
         # get predictions
         time_start = time.time()
