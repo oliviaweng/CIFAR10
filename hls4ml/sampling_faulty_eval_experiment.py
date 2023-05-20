@@ -303,16 +303,21 @@ def main(args):
         trace_time = time.time() - hess_start
         print(f"Hessian trace compute time: {trace_time} seconds")
         print(f"hess_trace = {hess_trace}")
+        #exp_file_write(
+        #    os.path.join(save_dir, "hess_trace_debug.log"),
+        #    f"num_val_inputs = {args.num_val_inputs} | batch_size = {batch_size}\n",
+        #)
         exp_file_write(
-            os.path.join(save_dir, "hess_trace_debug.log"),
-            f"num_val_inputs = {args.num_val_inputs} | batch_size = {batch_size}\n",
+            os.path.join(save_dir, f"hess_trace_debug{args.thread_id}.log"),
+            f"Thread {args.thread_id}:\n",
+            open_mode="w"
         )
         exp_file_write(
-            os.path.join(save_dir, "hess_trace_debug.log"),
-            f"Time = {trace_time} seconds\n",
+            os.path.join(save_dir, f"hess_trace_debug{args.thread_id}.log"),
+            f"  Time = {trace_time} seconds\n",
         )
         exp_file_write(
-            os.path.join(save_dir, "hess_trace_debug.log"), f"Trace = {hess_trace}\n"
+            os.path.join(save_dir, f"hess_trace_debug{args.thread_id}.log"), f"  Trace = {hess_trace}\n"
         )
         break
 
@@ -395,6 +400,12 @@ if __name__ == "__main__":
         type=str,
         default=None,
         help="File path to numpy array containing indices of correct predictions",
+    )
+    parser.add_argument(
+        "--thread_id",
+        type=str,
+        default=None,
+        help="Identifying string of thread launching this python file.",
     )
 
     args = parser.parse_args()
