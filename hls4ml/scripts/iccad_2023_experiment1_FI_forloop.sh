@@ -1,7 +1,7 @@
 #!/bin/bash
 PRETRAINED_MODEL=./resnet_v1_eembc_quantized_tiny2_fkeras/model_best.h5
 CORRECT_IDX_FILE=./resnet_v1_eembc_quantized_tiny2_fkeras/non_faulty_correct_indices.npy
-IEU_EFX_DIR="~/GitHub/FKeras-Experiments/data"
+IEU_EFX_DIR="/home/anmeza/GitHub/FKeras-Experiments/data"
  
 model_id=$1
 vinputs=$2
