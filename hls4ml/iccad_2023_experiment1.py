@@ -272,6 +272,8 @@ def main(args):
 
     # S: Begin the single fault injection (bit flipping) campaign
     for bit_i in range(*bit_flip_range_step):
+        #S: Track FI loop start time
+        fi_loop_start = time.time()
 
         # S: Flip the desired bit in the model
         fmodel.explicit_select_model_param_bitflip([bit_i])
@@ -324,7 +326,7 @@ def main(args):
         subtime_ht_metric = trace_time
         subtime_pefr      = time_store_pefr
         my_sub_times = (subtime_dataset, subtime_gt_metric, subtime_ht_metric, subtime_pefr)
-        time_store_pefd = ieu.store_pefd_experiment1(fp_pefd, bit_i, time.time()-10, my_sub_times)
+        time_store_pefd = ieu.store_pefd_experiment1(fp_pefd, bit_i, fi_loop_start, my_sub_times)
 
         # #S: Update IEU FKeras-Experiments repo by pushing pefd files (pefr files not tracked until later)
         # bits_flipped_by_vsystem = args.bfr_start - args.ieu_lbi
