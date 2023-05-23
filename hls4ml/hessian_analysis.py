@@ -228,9 +228,9 @@ def main(args):
         print(f"Top {i+1} eigenvalue: {eigenvalues[i]}")
     for i in range(top_k):
         print(eigenvectors[i])
-        print(f"Eigenvector shape: {np.array(eigenvectors[i]).shape}")
+        print(f"Eigenvector shape i: {np.array(eigenvectors[i]).shape}")
         for j in range(len(eigenvectors[i])):
-            print(f"Eigenvector shape: {np.array(eigenvectors[i][j]).shape}")
+            print(f"--Eigenvector shape j: {np.array(eigenvectors[i][j]).shape}")
     print(f'Hessian eigenvalue compute time: {time.time() - hess_start} seconds\n')
     # eigenvalues = None
     rank_start_time = time.time()
