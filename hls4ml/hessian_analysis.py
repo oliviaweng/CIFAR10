@@ -210,8 +210,8 @@ def main(args):
     hess = HessianMetrics(
         model, 
         CategoricalCrossentropy(), 
-        X_test, 
-        y_test,
+        X_test[:512], 
+        y_test[:512],
         batch_size=512
     )
         
@@ -227,7 +227,7 @@ def main(args):
     print(f'Hessian eigenvalue compute time: {time.time() - hess_start} seconds\n')
     # eigenvalues = None
     rank_start_time = time.time()
-    param_ranking, param_scores = hess.hessian_ranking(
+    param_ranking, param_scores = hess.hessian_ranking_general(
         eigenvectors, eigenvalues=eigenvalues, k=top_k, strategy=strategy
     )
     # bitwise_rank, bitwise_scores = hess.rank_bits(param_scores, 5) # add m = 5 bits (doesn't work; TODO: delete)
