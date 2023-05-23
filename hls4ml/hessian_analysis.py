@@ -23,6 +23,8 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from fkeras.metrics.hessian import HessianMetrics
 import time
 
+import numpy as np
+
 def random_crop(x):
     return random_crop_model.predict(x)
 
@@ -224,7 +226,8 @@ def main(args):
     print("Eigenvectors")
     for i in range(len(eigenvalues)):
         print(f"Top {i+1} eigenvalue: {eigenvalues[i]}")
-        print(f"Eigenvector shape: {eigenvectors[i].shape}")
+    for i in range(top_k):
+        print(f"Eigenvector shape: {np.array(eigenvectors[i]).shape}")
     print(f'Hessian eigenvalue compute time: {time.time() - hess_start} seconds\n')
     # eigenvalues = None
     rank_start_time = time.time()
