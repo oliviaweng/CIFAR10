@@ -227,7 +227,7 @@ def main(args):
     for i in range(len(eigenvalues)):
         print(f"Top {i+1} eigenvalue: {eigenvalues[i]}")
     for i in range(top_k):
-        print({eigenvectors[i]})
+        print(eigenvectors[i])
         print(f"Eigenvector shape: {np.array(eigenvectors[i]).shape}")
         for j in range(len(eigenvectors[i])):
             print(f"Eigenvector shape: {np.array(eigenvectors[i][j]).shape}")
