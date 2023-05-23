@@ -247,7 +247,7 @@ def main(args):
     rank_start_time = time.time()
 
     param_ranking, param_scores = hess.hessian_ranking_general(
-        eigenvectors, eigenvalues=eigenvalues, k=top_k, strategy=strategy
+        sanitized_evs, eigenvalues=eigenvalues, k=top_k, strategy=strategy, iter_by=1
     )
     # bitwise_rank, bitwise_scores = hess.rank_bits(param_scores, 5) # add m = 5 bits (doesn't work; TODO: delete)
     bitwise_rank = hess.convert_param_ranking_to_msb_bit_ranking(param_ranking, BIT_WIDTH)
