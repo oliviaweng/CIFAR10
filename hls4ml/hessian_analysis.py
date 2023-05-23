@@ -210,9 +210,9 @@ def main(args):
     hess = HessianMetrics(
         model, 
         CategoricalCrossentropy(), 
-        X_test[:512], 
-        y_test[:512],
-        batch_size=512
+        X_test[:32], 
+        y_test[:32],
+        batch_size=32
     )
         
     hess_start = time.time()
@@ -224,6 +224,7 @@ def main(args):
     print("Eigenvectors")
     for i in range(len(eigenvalues)):
         print(f"Top {i+1} eigenvalue: {eigenvalues[i]}")
+        print(f"Eigenvector shape: {eigenvectors[i].shape}")
     print(f'Hessian eigenvalue compute time: {time.time() - hess_start} seconds\n')
     # eigenvalues = None
     rank_start_time = time.time()
@@ -235,6 +236,16 @@ def main(args):
 
     pickled_ranking_file = f"hessian_ranked_model_bits_iccad_2023_CIFAR-10.pkl"
     
+    obj = list(bitwise_rank)
+    pickled_obj = codecs.encode(pickle.dumps(obj), "base64").decode()
+    with open(pickled_ranking_file, "w") as f:
+        f.write(pickled_obj)
+
+
+    gradient_rank, _ = hess.layer_gradient_ranking_general()
+    bitwise_rank = hess.convert_param_ranking_to_msb_bit_ranking(gradient_rank, BIT_WIDTH)
+    
+    pickled_ranking_file = f"gradient_ranked_model_bits_iccad_2023_CIFAR-10.pkl"
     obj = list(bitwise_rank)
     pickled_obj = codecs.encode(pickle.dumps(obj), "base64").decode()
     with open(pickled_ranking_file, "w") as f:
