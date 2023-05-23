@@ -223,17 +223,29 @@ def main(args):
     strategy = "sum"
     # Hessian model-wide sensitivity ranking
     eigenvalues, eigenvectors = hess.top_k_eigenvalues(k=top_k, max_iter=500)
+    sanitized_evs = list() #the list contains k lists of eigenvectors
     print("Eigenvectors")
     for i in range(len(eigenvalues)):
         print(f"Top {i+1} eigenvalue: {eigenvalues[i]}")
     for i in range(top_k):
-        print(eigenvectors[i])
+        curr_evs = list()
+        # print(eigenvectors[i])
         print(f"Eigenvector shape i: {np.array(eigenvectors[i]).shape}")
         for j in range(len(eigenvectors[i])):
             print(f"--Eigenvector shape j: {np.array(eigenvectors[i][j]).shape}")
+            if np.array(eigenvectors[i][j]).size > 32:
+                curr_evs.append(np.array(eigenvectors[i][j]))
+        sanitized_evs.append(np.array(curr_evs))
+    
+    for i in range(top_k):
+        for j in range(len(sanitized_evs[i])):
+            print(f" Sanitized i,j {i},{j} = {sanitized_evs[i][j].shape}")
+        break
+
     print(f'Hessian eigenvalue compute time: {time.time() - hess_start} seconds\n')
     # eigenvalues = None
     rank_start_time = time.time()
+
     param_ranking, param_scores = hess.hessian_ranking_general(
         eigenvectors, eigenvalues=eigenvalues, k=top_k, strategy=strategy
     )
