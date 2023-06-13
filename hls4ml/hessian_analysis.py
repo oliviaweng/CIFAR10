@@ -212,8 +212,8 @@ def main(args):
     hess = HessianMetrics(
         model, 
         CategoricalCrossentropy(), 
-        X_test[:32], 
-        y_test[:32],
+        X_test[:256], 
+        y_test[:256],
         batch_size=32
     )
         
@@ -223,24 +223,7 @@ def main(args):
     strategy = "sum"
     # Hessian model-wide sensitivity ranking
     eigenvalues, eigenvectors = hess.top_k_eigenvalues(k=top_k, max_iter=500, rank_BN=False)
-    # sanitized_evs = list() #the list contains k lists of eigenvectors
-    # print("Eigenvectors")
-    # for i in range(len(eigenvalues)):
-    #     print(f"Top {i+1} eigenvalue: {eigenvalues[i]}")
-    # for i in range(top_k):
-    #     curr_evs = list()
-    #     # print(eigenvectors[i])
-    #     print(f"Eigenvector shape i: {np.array(eigenvectors[i]).shape}")
-    #     for j in range(len(eigenvectors[i])):
-    #         print(f"--Eigenvector shape j: {np.array(eigenvectors[i][j]).shape}")
-    #         if np.array(eigenvectors[i][j]).size > 32:
-    #             curr_evs.append(np.array(eigenvectors[i][j]))
-    #     sanitized_evs.append(np.array(curr_evs))
-    
-    # for i in range(top_k):
-    #     for j in range(len(sanitized_evs[i])):
-    #         print(f" Sanitized i,j {i},{j} = {sanitized_evs[i][j].shape}")
-    #     break
+
 
     print(f'Hessian eigenvalue compute time: {time.time() - hess_start} seconds\n')
     # eigenvalues = None
