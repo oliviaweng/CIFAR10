@@ -21,6 +21,7 @@ import codecs
 import pickle
 from tensorflow.keras.losses import CategoricalCrossentropy
 from fkeras.metrics.hessian import HessianMetrics
+from fkeras.metrics.stat_fi import StatFI
 import time
 
 import numpy as np
@@ -232,25 +233,42 @@ def main(args):
     param_ranking, param_scores = hess.hessian_ranking_general(
         eigenvectors, eigenvalues=eigenvalues, k=top_k, strategy=strategy, iter_by=1
     )
+
+    # Hessian param ranking + quantizer_info for hybrid Hessian + BinFI analysis
+    #Extract model parameters
+    sfi_model = StatFI(model)
+    params_and_quants = sfi_model.get_params_and_quantizers()
+    print(f"{params_and_quants[0].shape}")
+    print(f"{params_and_quants[1].shape}")
+    quantizer_info = params_and_quants[1][0]
+
+    fp_pickle = os.path.join(save_dir, model_name) 
+    pickled_param_ranking_file = f"{fp_pickle}_hessian_ranked_params.pkl"
+    obj = (list(param_ranking), quantizer_info)
+    pickled_obj = codecs.encode(pickle.dumps(obj), "base64").decode()
+    with open(pickled_param_ranking_file, "w") as f:
+        f.write(pickled_obj)
+
+
     # bitwise_rank, bitwise_scores = hess.rank_bits(param_scores, 5) # add m = 5 bits (doesn't work; TODO: delete)
-    bitwise_rank = hess.convert_param_ranking_to_msb_bit_ranking(param_ranking, BIT_WIDTH)
+    # bitwise_rank = hess.convert_param_ranking_to_msb_bit_ranking(param_ranking, BIT_WIDTH)
 
-    pickled_ranking_file = f"hessian_ranked_model_bits_iccad_2023_CIFAR-10.pkl"
+    # pickled_ranking_file = f"hessian_ranked_model_bits_iccad_2023_CIFAR-10.pkl"
     
-    obj = list(bitwise_rank)
-    pickled_obj = codecs.encode(pickle.dumps(obj), "base64").decode()
-    with open(pickled_ranking_file, "w") as f:
-        f.write(pickled_obj)
+    # obj = list(bitwise_rank)
+    # pickled_obj = codecs.encode(pickle.dumps(obj), "base64").decode()
+    # with open(pickled_ranking_file, "w") as f:
+    #     f.write(pickled_obj)
 
 
-    gradient_rank, _ = hess.layer_gradient_ranking_general()
-    bitwise_rank = hess.convert_param_ranking_to_msb_bit_ranking(gradient_rank, BIT_WIDTH)
+    # gradient_rank, _ = hess.layer_gradient_ranking_general()
+    # bitwise_rank = hess.convert_param_ranking_to_msb_bit_ranking(gradient_rank, BIT_WIDTH)
     
-    pickled_ranking_file = f"gradient_ranked_model_bits_iccad_2023_CIFAR-10.pkl"
-    obj = list(bitwise_rank)
-    pickled_obj = codecs.encode(pickle.dumps(obj), "base64").decode()
-    with open(pickled_ranking_file, "w") as f:
-        f.write(pickled_obj)
+    # pickled_ranking_file = f"gradient_ranked_model_bits_iccad_2023_CIFAR-10.pkl"
+    # obj = list(bitwise_rank)
+    # pickled_obj = codecs.encode(pickle.dumps(obj), "base64").decode()
+    # with open(pickled_ranking_file, "w") as f:
+    #     f.write(pickled_obj)
 
 
 if __name__ == "__main__":
