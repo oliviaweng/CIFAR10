@@ -470,7 +470,7 @@ def resnet_v1_eembc_quantized(
     # Final classification layer.
     pool_size = int(np.amin(x.shape[1:3]))
     if pool_size > 1 and avg_pooling:
-        x = QAveragePooling2D(pool_size=pool_size, quantizer=logit_quantizer)(x)
+        x = QAveragePooling2D(pool_size=pool_size, average_quantizer=logit_quantizer)(x)
 
     y = Flatten()(x)
     # Changed output to separate QDense but did not quantize softmax as specified
@@ -747,7 +747,7 @@ def resnet_v1_eembc_quantized_fkeras(
     # Final classification layer.
     pool_size = int(np.amin(x.shape[1:3]))
     if pool_size > 1 and avg_pooling:
-        x = QAveragePooling2D(pool_size=pool_size, quantizer=logit_quantizer)(x)
+        x = QAveragePooling2D(pool_size=pool_size, average_quantizer=logit_quantizer)(x)
 
     y = Flatten()(x)
     # Changed output to separate QDense but did not quantize softmax as specified
