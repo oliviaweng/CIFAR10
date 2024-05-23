@@ -16,7 +16,10 @@ import csv
 from fkeras.fmodel import FModel
 from fkeras.metrics.hessian import HessianMetrics
 
+# ICCAD2023 related imports ##############
 import iccad_2023_experiment_utils as ieu
+import subprocess
+##########################################
 
 # from keras_flops import get_flops # (different flop calculation)
 # import kerop
@@ -219,13 +222,13 @@ def main(args):
     print(fmodel.layer_bit_ranges)
 
     # S: Configure how many validation inputs will be used
-    curr_val_input = X_test
-    curr_val_output = y_test
-    if 0 < args.num_val_inputs <= X_test.shape[0]:
-        curr_val_input = X_test[: args.num_val_inputs]
-        curr_val_output = y_test[: args.num_val_inputs]
-    else:
-        raise RuntimeError("Improper configuration for 'num_val_inputs'")
+    # curr_val_input = X_test
+    # curr_val_output = y_test
+    # if 0 < args.num_val_inputs <= X_test.shape[0]:
+    #     curr_val_input = X_test[: args.num_val_inputs]
+    #     curr_val_output = y_test[: args.num_val_inputs]
+    # else:
+    #     raise RuntimeError("Improper configuration for 'num_val_inputs'")
 
     # S: Configure which bits will be flipped
     bit_flip_range_step = (0, 2, 1)
@@ -262,7 +265,6 @@ def main(args):
     else:
         print("Loading correct indices from file")
         non_faulty_correct_indices = np.load(args.correct_idx_file)
-    
     X_test = X_test[non_faulty_correct_indices]
     X_test = tf.reshape(X_test, (X_test.shape[0], 32, 32, 3))
     y_test = y_test[non_faulty_correct_indices]
@@ -270,6 +272,8 @@ def main(args):
 
     # S: Begin the single fault injection (bit flipping) campaign
     for bit_i in range(*bit_flip_range_step):
+        #S: Track FI loop start time
+        fi_loop_start = time.time()
 
         # S: Flip the desired bit in the model
         fmodel.explicit_select_model_param_bitflip([bit_i])
@@ -278,8 +282,8 @@ def main(args):
         time_start = time.time()
         y_pred = model.predict(X_test, batch_size=batch_size)
         loss_val = CategoricalCrossentropy()(y_test, y_pred)
-        time_end = time.time()
-        print(f"Time to predict = {time_end - time_start}")
+        predict_time = time.time() - time_start
+        print(f"Time to predict = {predict_time}")
 
         # one-hot encode
         y_pred = tf.one_hot(tf.argmax(y_pred, axis=1), depth=10)
@@ -290,10 +294,12 @@ def main(args):
         )
         # Number of times bit flip caused a misprediction
         # @Andy: Log this number for each bit flip
+        num_mispredictions = y_test.shape[0] - len(y_pred_correct_indices)
         print(f"num mispredictions = {y_test.shape[0] - len(y_pred_correct_indices)}")
 
         print("cross entropy loss = %.3f" % loss_val)
 
+        #S: Compute Hessian
         # hess_start = time.time()
         # hess = HessianMetrics(
         #     fmodel.model,
@@ -302,29 +308,36 @@ def main(args):
         #     curr_val_output,
         #     batch_size=batch_size,
         # )
-        # hess_trace = hess.trace(max_iter=500)
+        # hess_trace = hess.trace(tolerance=1e-1)
         # trace_time = time.time() - hess_start
         # print(f"Hessian trace compute time: {trace_time} seconds")
         # print(f"hess_trace = {hess_trace}")
-        #exp_file_write(
-        #    os.path.join(save_dir, "hess_trace_debug.log"),
-        #    f"num_val_inputs = {args.num_val_inputs} | batch_size = {batch_size}\n",
-        #)
         hess_trace = -404
         trace_time = 0
-        exp_file_write(
-            os.path.join(save_dir, f"hess_trace_debug{args.thread_id}.log"),
-            f"Thread {args.thread_id}:\n",
-            open_mode="w"
-        )
-        exp_file_write(
-            os.path.join(save_dir, f"hess_trace_debug{args.thread_id}.log"),
-            f"  Time = {trace_time} seconds\n",
-        )
-        exp_file_write(
-            os.path.join(save_dir, f"hess_trace_debug{args.thread_id}.log"), f"  Trace = {hess_trace}\n"
-        )
+
+        #S: Specify pefx file paths
+        fp_pefr = os.path.join(args.ieu_efx_dir, args.ieu_model_id, args.ieu_pefr_name)
+        fp_pefd = os.path.join(args.ieu_efx_dir, args.ieu_model_id, args.ieu_pefd_name)
+
+        #S: Update corresponding pefr file
+        time_store_pefr = ieu.store_pefr_cifar10(fp_pefr, bit_i, num_mispredictions, hess_trace, loss_val)
+
+        #S: Update corresponding pefd file
+        subtime_dataset   = 0
+        subtime_gt_metric = predict_time
+        subtime_ht_metric = trace_time
+        subtime_pefr      = time_store_pefr
+        my_sub_times = (subtime_dataset, subtime_gt_metric, subtime_ht_metric, subtime_pefr)
+        time_store_pefd = ieu.store_pefd_experiment1(fp_pefd, bit_i, fi_loop_start, my_sub_times)
+
+        # #S: Update IEU FKeras-Experiments repo by pushing pefd files (pefr files not tracked until later)
+        # bits_flipped_by_vsystem = args.bfr_start - args.ieu_lbi
+        # if bits_flipped_by_vsystem%args.ieu_git_step == 0: 
+        #     subprocess.run("./scripts/iccad_2023_experiment1_git_commands.sh", shell=True)
+        
         break
+
+
 
 def compute_accuracy(one_hot_true, one_hot_pred):
     # Convert one-hot encoding to indices
@@ -406,11 +419,55 @@ if __name__ == "__main__":
         default=None,
         help="File path to numpy array containing indices of correct predictions",
     )
+
+
     parser.add_argument(
-        "--thread_id",
+        "--ieu_model_id",
         type=str,
         default=None,
-        help="Identifying string of thread launching this python file.",
+        help="IEU identifying string of model.",
+    )
+    parser.add_argument(
+        "--ieu_vinputs",
+        type=int,
+        default=256,
+        help="IEU val inputs for run",
+    )
+    parser.add_argument(
+        "--ieu_vsystem_id",
+        type=str,
+        default=None,
+        help="IEU virtual system id",
+    )
+    parser.add_argument(
+        "--ieu_efx_dir",
+        type=str,
+        default=None,
+        help="IEU data directory for all models",
+    )
+    parser.add_argument(
+        "--ieu_pefr_name",
+        type=str,
+        default=None,
+        help="IEU name of pickled efr file",
+    )
+    parser.add_argument(
+        "--ieu_pefd_name",
+        type=str,
+        default=None,
+        help="IEU name of pickled efd file",
+    )
+    parser.add_argument(
+        "--ieu_git_step",
+        type=int,
+        default=100,
+        help="IEU frequency with which to update the IEU git repo",
+    )
+    parser.add_argument(
+        "--ieu_lbi",
+        type=int,
+        default=100,
+        help="IEU lbi (i.e., start of FI loop)",
     )
 
     args = parser.parse_args()
