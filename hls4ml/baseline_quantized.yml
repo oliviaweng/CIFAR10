@@ -1,4 +1,4 @@
-save_dir: resnet_v1_eembc
+save_dir: resnet_v1_eembc_quantized_baseline
 
 data:
   name: cifar10
@@ -76,4 +76,8 @@ convert:
   Strategy: Resource
   Override:
     input_1:
+<<<<<<< HEAD
       Precision: ap_ufixed<8,1>
+=======
+      Precision: ap_ufixed<8,1>
+>>>>>>> 711d1fb74e931befebc4afefabd4736cda54a287
