@@ -1,2 +1,2 @@
 #!/bin/bash
-python3 train.py -c tiny2_pynq-z2-fkeras.yml
+CUDA_VISIBLE_DEVICES="" python3 train.py -c baseline_quantized.yml

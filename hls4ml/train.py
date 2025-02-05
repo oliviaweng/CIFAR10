@@ -1,6 +1,6 @@
 import os
-if os.system('nvidia-smi') == 0:
-    import setGPU
+# if os.system('nvidia-smi') == 0:
+#     import setGPU
 import tensorflow as tf
 import glob
 import sys
