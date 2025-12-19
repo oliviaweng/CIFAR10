@@ -209,6 +209,7 @@ def main(args):
     
     # Evaluate the model
     print("Computing Hessian Metrics...")
+    hess_start = time.time()
     
     hess = HessianMetrics(
         model, 
@@ -218,7 +219,6 @@ def main(args):
         batch_size=32
     )
         
-    hess_start = time.time()
     top_k = 8
     BIT_WIDTH = 8
     strategy = "sum"
@@ -226,13 +226,14 @@ def main(args):
     eigenvalues, eigenvectors = hess.top_k_eigenvalues(k=top_k, max_iter=500, rank_BN=False)
 
 
-    print(f'Hessian eigenvalue compute time: {time.time() - hess_start} seconds\n')
     # eigenvalues = None
     rank_start_time = time.time()
 
     param_ranking, param_scores = hess.hessian_ranking_general(
         eigenvectors, eigenvalues=eigenvalues, k=top_k, strategy=strategy, iter_by=1
     )
+    print(f'Hessian ranking compute time: {time.time() - hess_start} seconds\n')
+    return
 
     # Hessian param ranking + quantizer_info for hybrid Hessian + BinFI analysis
     #Extract model parameters
